@@ -14,6 +14,7 @@ Feature: Action Configuration
     And "ai_review_tag" should default to "ai-review"
     And "senior_tag" should default to "senior-review"
     And "authorized_roles" should default to "maintain,admin"
+    And "bypass_roles" should default to "maintain,admin"
 
   Scenario: Valid configuration with custom overrides
     Given the workflow YAML provides input "model" set to "anthropic/claude-3.5-sonnet"

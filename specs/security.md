@@ -97,3 +97,42 @@ The `OPENROUTER_API_KEY` MUST only be loaded as an environment variable. It MUST
 - WHEN the LLM generates a response
 - THEN the API key MUST NOT be included in any prompt sent to the LLM
 - AND the key MUST only be used in the HTTP client transport layer
+
+---
+
+## Requirement: Credential redaction guardrail
+
+All outputs produced by the system — LLM responses, PR comments, log entries, and error messages — MUST pass through a credential redaction guardrail before being emitted. The guardrail SHALL attempt to detect and replace the `OPENROUTER_API_KEY` value with `[REDACTED]`.
+
+### Scenario: LLM response contains the API key
+
+- GIVEN the LLM generates a response that accidentally includes the API key value
+- WHEN the response passes through the redaction guardrail
+- THEN every occurrence of the API key MUST be replaced with `[REDACTED]`
+- AND the redacted response MUST be used for all downstream processing
+
+### Scenario: PR comment is redacted before posting
+
+- GIVEN the system is about to post a PR comment
+- WHEN the comment content passes through the redaction guardrail
+- THEN any string matching the `OPENROUTER_API_KEY` value MUST be replaced with `[REDACTED]`
+- AND the comment MUST NOT be posted until redaction is complete
+
+### Scenario: Error message is redacted before logging
+
+- GIVEN an API call fails and the error includes the key in headers or URL
+- WHEN the error is formatted for logging or PR comment
+- THEN the redaction guardrail MUST replace the key value with `[REDACTED]`
+
+### Scenario: Redaction guardrail handles partial key matches
+
+- GIVEN the API key is `sk-or-v1-abc123`
+- AND the LLM response contains `Authorization: Bearer sk-or-v1-abc123`
+- WHEN the response passes through the redaction guardrail
+- THEN the output MUST read `Authorization: Bearer [REDACTED]`
+
+### Scenario: Redaction guardrail does not alter non-matching content
+
+- GIVEN a PR comment contains no string matching the API key
+- WHEN the comment passes through the redaction guardrail
+- THEN the comment MUST remain unchanged

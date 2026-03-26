@@ -75,3 +75,37 @@ Feature: Security — Injection Protection & Sandbox Isolation
     When prompts are sent to the LLM
     Then the API key should not appear in any prompt content
     And the key should only be used in the HTTP transport layer
+
+  # --- Credential Redaction Guardrail ---
+
+  Scenario: LLM response containing API key is redacted
+    Given the API key is "sk-or-v1-abc123"
+    And the LLM generates a response containing "sk-or-v1-abc123"
+    When the response passes through the redaction guardrail
+    Then "sk-or-v1-abc123" should be replaced with "[REDACTED]"
+    And the redacted response should be used for all downstream processing
+
+  Scenario: PR comment is redacted before posting
+    Given the API key is "sk-or-v1-abc123"
+    And a PR comment draft contains "Error with key sk-or-v1-abc123"
+    When the comment passes through the redaction guardrail
+    Then the posted comment should read "Error with key [REDACTED]"
+    And the comment should not be posted until redaction is complete
+
+  Scenario: Error message is redacted before logging
+    Given the API key is "sk-or-v1-abc123"
+    And an API error message contains "Authorization: Bearer sk-or-v1-abc123"
+    When the error is formatted for logging
+    Then the log should read "Authorization: Bearer [REDACTED]"
+
+  Scenario: Redaction handles key appearing multiple times
+    Given the API key is "sk-or-v1-abc123"
+    And a response contains "key=sk-or-v1-abc123 and again sk-or-v1-abc123"
+    When the response passes through the redaction guardrail
+    Then the output should read "key=[REDACTED] and again [REDACTED]"
+
+  Scenario: Redaction does not alter content without the key
+    Given the API key is "sk-or-v1-abc123"
+    And a PR comment contains "All checks passed. No issues found."
+    When the comment passes through the redaction guardrail
+    Then the comment should remain unchanged

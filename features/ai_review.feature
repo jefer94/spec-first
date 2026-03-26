@@ -35,6 +35,23 @@ Feature: AI Review — Diff vs Specs
     And the agent should call the "read_spec" tool to load spec requirements
     And the agent should produce a compliance verdict based on diff and context
 
+  Scenario: read_file returns first page with total_lines when no offset given
+    Given a file "src/large_module.py" has 2000 lines
+    When the agent calls "read_file" for "src/large_module.py" with no offset or limit
+    Then the tool should return the first page of content
+    And the response should include "total_lines" equal to 2000
+
+  Scenario: read_file returns specific range with offset and limit
+    Given a file "src/large_module.py" has 2000 lines
+    When the agent calls "read_file" with offset 150 and limit 50
+    Then the tool should return only lines 150 through 200
+    And the response should include "total_lines" equal to 2000
+
+  Scenario: Agent paginates through a large file
+    Given a file "src/large_module.py" has 2000 lines
+    When the agent calls "read_file" and sees total_lines exceeds the page size
+    Then the agent may call "read_file" again with a new offset to read the next page
+
   Scenario: Agent uses list_changed_files on large PRs
     Given a PR with changes across 12 files
     When the LangChain agent processes the diff

@@ -44,7 +44,7 @@ The AI reviewer MUST be implemented as a LangChain agent with tools. The diff is
 
 ### Tool: read_file
 
-The agent MAY read full file contents from the PR branch to understand code that the diff references but does not fully show.
+The agent MAY read file contents from the PR branch to understand code that the diff references but does not fully show. The tool MUST support pagination via `offset` (1-indexed line number) and `limit` (number of lines) parameters. If neither is provided, the tool SHALL return the first page (default limit). The response MUST include `total_lines` so the agent knows whether more content is available.
 
 ### Tool: list_changed_files
 
@@ -65,6 +65,20 @@ The agent MAY inspect the repository tree to understand where new files fit in t
 - THEN it SHOULD use `read_file` to see the full file for context
 - AND use `read_spec` to load the relevant requirements
 - AND produce a compliance verdict based on both the diff and the surrounding context
+
+### Scenario: Agent paginates read_file on large files
+
+- GIVEN a diff references a file with 2000 lines
+- WHEN the agent calls `read_file` with no offset or limit
+- THEN the tool MUST return the first page of content with `total_lines: 2000`
+- AND the agent MAY call `read_file` again with `offset` and `limit` to read subsequent pages
+
+### Scenario: Agent reads a specific range of a file
+
+- GIVEN the agent needs to see lines 150–200 of a file
+- WHEN the agent calls `read_file` with `offset: 150` and `limit: 50`
+- THEN the tool MUST return only lines 150–200
+- AND include `total_lines` in the response
 
 ### Scenario: Agent handles large PRs with multiple files
 
