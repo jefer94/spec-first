@@ -2,7 +2,7 @@ import json
 import os
 import sys
 
-from github import Github
+from github import Auth, Github
 
 from src.config import Config, ensure_labels
 from src.gate import classify_files, extract_spec_pr_number, run_gate
@@ -29,7 +29,7 @@ def main() -> None:
     with open(event_path) as f:
         event = json.load(f)
 
-    gh = Github(github_token)
+    gh = Github(auth=Auth.Token(github_token))
     repo_name = event.get("repository", {}).get("full_name", "")
     repo = gh.get_repo(repo_name)
 

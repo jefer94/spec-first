@@ -121,6 +121,7 @@ class Config:
 
 
 def ensure_labels(repo: Repository, cfg: Config) -> None:
+    from github import GithubException
     existing = {label.name for label in repo.get_labels()}
     tag_keys = ["accepted_tag", "ai_review_tag", "senior_tag"]
 
@@ -128,8 +129,17 @@ def ensure_labels(repo: Repository, cfg: Config) -> None:
         tag_name = getattr(cfg, key)
         if tag_name not in existing:
             color, description = _LABEL_DEFAULTS.get(key, ("cccccc", ""))
-            repo.create_label(name=tag_name, color=color, description=description)
-            print(f"Created label: {tag_name}")
+            try:
+                repo.create_label(name=tag_name, color=color, description=description)
+                print(f"Created label: {tag_name}")
+            except GithubException as exc:
+                if exc.status == 422 and any(
+                    e.get("code") == "already_exists"
+                    for e in (exc.data.get("errors") or [])
+                ):
+                    print(f"Label already exists (race condition): {tag_name}")
+                else:
+                    raise
 
 
 def _parse_list(value: str) -> list[str]:
