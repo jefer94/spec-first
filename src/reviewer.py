@@ -6,8 +6,7 @@ from typing import Optional
 from github.PullRequest import PullRequest
 from github.Repository import Repository
 from langchain_openai import ChatOpenAI
-from langchain.agents import AgentExecutor, create_tool_calling_agent
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain.agents import create_agent
 
 from src.config import Config
 from src.feedback import format_approval, format_rejection
@@ -22,8 +21,8 @@ _OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 def _build_llm(cfg: Config) -> ChatOpenAI:
     return ChatOpenAI(
         model=cfg.model,
-        openai_api_key=cfg.api_key,
-        openai_api_base=_OPENROUTER_BASE_URL,
+        api_key=cfg.api_key,
+        base_url=_OPENROUTER_BASE_URL,
         temperature=0,
     )
 
@@ -84,18 +83,12 @@ def run_review(pr: PullRequest, repo: Repository, cfg: Config) -> None:
     user_message = USER_PROMPT_TEMPLATE.format(specs=specs or "_No spec PR linked._", diff=diff)
 
     llm = _build_llm(cfg)
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", SYSTEM_PROMPT),
-        ("human", "{input}"),
-        MessagesPlaceholder(variable_name="agent_scratchpad"),
-    ])
-
-    agent = create_tool_calling_agent(llm, ALL_TOOLS, prompt)
-    executor = AgentExecutor(agent=agent, tools=ALL_TOOLS, verbose=False, handle_parsing_errors=True)
+    agent = create_agent(llm, tools=ALL_TOOLS, system_prompt=SYSTEM_PROMPT)
 
     try:
-        result = executor.invoke({"input": user_message})
-        output = result.get("output", "")
+        result = agent.invoke({"messages": [("human", user_message)]})
+        messages = result.get("messages", [])
+        output = messages[-1].content if messages else ""
         verdict_data = _parse_verdict(output)
     except Exception as exc:
         reason = str(exc)
