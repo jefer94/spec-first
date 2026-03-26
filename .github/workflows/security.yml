@@ -70,7 +70,6 @@ jobs:
       - name: Run Gitleaks
         uses: gitleaks/gitleaks-action@v2
         env:
-          GITLEAKS_LICENSE: ''
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   bandit:
