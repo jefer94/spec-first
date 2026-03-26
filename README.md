@@ -122,6 +122,66 @@ All behavior is specified in `specs/` with Given/When/Then scenarios and tested 
 - **Behave** — BDD testing
 - **Docker** — Action container (reproducible environment)
 
+## Development
+
+### Setup
+
+```bash
+# Create virtual environment and install dependencies
+uv venv .venv
+uv pip install -r requirements.txt
+```
+
+### Run Tests
+
+```bash
+# Run all Behave BDD scenarios
+.venv/bin/python -m behave
+
+# Run a specific feature file
+.venv/bin/python -m behave features/pr_gate.feature
+
+# Run a specific scenario by line number
+.venv/bin/python -m behave features/pr_gate.feature:75
+
+# Dry-run (check step definitions without executing)
+.venv/bin/python -m behave --dry-run
+
+# Show all output (disable capture)
+.venv/bin/python -m behave --no-capture
+```
+
+### Security Scans (local)
+
+```bash
+# Python security linting
+pip install bandit
+bandit -r src/
+
+# Dependency vulnerability audit
+pip install pip-audit
+pip-audit
+
+# Secret detection
+pip install gitleaks  # or use the CLI binary
+gitleaks detect --source .
+```
+
+### Docker
+
+```bash
+# Build the action image locally
+docker build -t spec-guard .
+
+# Run the action container (requires env vars)
+docker run --rm \
+  -e GITHUB_TOKEN=... \
+  -e OPENROUTER_API_KEY=... \
+  -e GITHUB_EVENT_NAME=pull_request \
+  -e GITHUB_EVENT_PATH=/event.json \
+  spec-guard
+```
+
 ## License
 
 [MIT](LICENSE)
