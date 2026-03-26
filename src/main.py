@@ -54,7 +54,7 @@ def _handle_pr_event(pr, repo, cfg: Config) -> None:
     changed_files = [f.filename for f in pr.get_files()]
     classification = classify_files(changed_files, cfg)
 
-    if cfg.review_on_pr and classification.has_code:
+    if cfg.review_on_pr and classification.is_code_only:
         spec_pr_number = extract_spec_pr_number(pr.body or "")
         if spec_pr_number:
             try:

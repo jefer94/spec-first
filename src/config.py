@@ -78,10 +78,13 @@ class Config:
         if self.msg_mixed_pr:
             return self.msg_mixed_pr
         return (
-            "## Spec Guard: PR Rejected\n\n"
-            "This PR contains code files but no accompanying specification files.\n\n"
-            "Please include spec files (`.md`, `.feature`) that describe the changes "
-            "and reopen the PR."
+            "## Spec Guard: Mixed PR Rejected\n\n"
+            "This PR contains both code and specification files.\n\n"
+            "Specs must be submitted and approved in a **separate PR** before code changes. "
+            "Please:\n"
+            "1. Open a spec-only PR with your `.md`/`.feature` files\n"
+            "2. Get it approved with the `specs-accepted` label\n"
+            "3. Open a new code PR referencing the spec PR with `Implements #N`"
         )
 
     def get_msg_unauthorized_tag(self, required_roles: list[str]) -> str:

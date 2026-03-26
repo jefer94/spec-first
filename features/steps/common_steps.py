@@ -122,6 +122,12 @@ def step_spec_pr_has_label(context, number, label):
     context.repo.get_pull.return_value = spec_pr
 
 
+@given('PR #{number:d} does not have the label "{label}"')
+def step_spec_pr_no_label(context, number, label):
+    spec_pr = context.make_pr(number=number, labels=[])
+    context.repo.get_pull.return_value = spec_pr
+
+
 # --- Repo labels ---
 
 @given('the repository has label "{label}"')

@@ -61,7 +61,7 @@ Feature: PR Gate — Content Classification
     When the action runs on "pull_request.opened"
     Then the PR should remain open
 
-  Scenario: PR contains code AND spec files together
+  Scenario: PR contains code AND spec files together — rejected
     Given a PR is opened by user "contributor" with "write" permission
     And the PR has changed files:
       | file                    |
@@ -69,8 +69,9 @@ Feature: PR Gate — Content Classification
       | src/auth.py             |
       | specs/payments.feature  |
     When the action runs on "pull_request.opened"
-    Then the PR should remain open
-    And a comment should be posted acknowledging that specs accompany the code
+    Then the PR should be closed
+    And a comment should be posted using the "msg_mixed_pr" template
+    And the comment should explain that specs must be submitted separately
 
   Scenario: PR contains only code files — no specs — by contributor
     Given a PR is opened by user "junior-dev" with "write" permission
@@ -95,14 +96,15 @@ Feature: PR Gate — Content Classification
     And the conversation should be locked
     And a comment should be posted using the "msg_no_specs" template
 
-  Scenario: Synchronized PR adds code with specs
+  Scenario: Synchronized PR adds code with specs — rejected
     Given an existing open PR by user "contributor" with "write" permission
     And new commits are pushed with changed files:
       | file              |
       | src/auth.py       |
       | specs/auth.md     |
     When the action runs on "pull_request.synchronize"
-    Then the PR should remain open
+    Then the PR should be closed
+    And a comment should be posted using the "msg_mixed_pr" template
 
   # --- Bypass SDD Enforcement ---
 
@@ -153,25 +155,48 @@ Feature: PR Gate — Content Classification
 
   # --- review_on_pr auto-trigger ---
 
-  Scenario: Code+spec PR auto-triggers AI review when review_on_pr is true
+  Scenario: Code-only PR auto-triggers AI review when review_on_pr is true and spec PR is accepted
     Given "review_on_pr" is "true"
     And a PR is opened by user "contributor" with "write" permission
     And the PR has changed files:
       | file              |
       | src/auth.py       |
-      | specs/auth.md     |
     And the PR body contains "Implements #42"
     And PR #42 has the label "specs-accepted"
     When the action runs on "pull_request.opened"
     Then the AI review should be automatically triggered
     And the "ai_review_tag" label should not be required
 
-  Scenario: Code+spec PR does not auto-trigger when review_on_pr is false
+  Scenario: Code-only PR does not auto-trigger when review_on_pr is false
     Given "review_on_pr" is "false"
     And a PR is opened by user "contributor" with "write" permission
     And the PR has changed files:
       | file              |
       | src/auth.py       |
-      | specs/auth.md     |
+    And the PR body contains "Implements #42"
+    And PR #42 has the label "specs-accepted"
     When the action runs on "pull_request.opened"
-    Then the AI review should not be triggered
+    Then the PR should be closed
+    And a comment should be posted using the "msg_no_specs" template
+
+  Scenario: Code-only PR with review_on_pr true but no accepted spec PR
+    Given "review_on_pr" is "true"
+    And a PR is opened by user "contributor" with "write" permission
+    And the PR has changed files:
+      | file              |
+      | src/auth.py       |
+    And the PR body contains "Implements #99"
+    And PR #99 does not have the label "specs-accepted"
+    When the action runs on "pull_request.opened"
+    Then the PR should be closed
+    And a comment should be posted using the "msg_no_specs" template
+
+  Scenario: Maintainer submits mixed code+specs PR — bypass allowed
+    Given a PR is opened by user "lead-dev" with "maintain" permission
+    And the PR has changed files:
+      | file              |
+      | src/hotfix.py     |
+      | specs/hotfix.md   |
+    When the action runs on "pull_request.opened"
+    Then the PR should remain open
+    And a comment should note SDD enforcement was bypassed due to the author's role

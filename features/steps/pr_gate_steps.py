@@ -4,7 +4,7 @@ from behave import when, then
 
 @when('the action runs on "{event}"')
 def step_action_runs(context, event):
-    from src.gate import run_gate
+    from src.main import _handle_pr_event
 
     def _capture_comment(msg):
         context.captured_comments.append(msg)
@@ -20,7 +20,7 @@ def step_action_runs(context, event):
     context.pr.edit.side_effect = _capture_edit
     context.pr.as_issue.return_value.lock.side_effect = _capture_lock
 
-    run_gate(context.pr, context.repo, context.cfg)
+    _handle_pr_event(context.pr, context.repo, context.cfg)
 
 
 @then('a comment should be posted acknowledging the spec submission')
@@ -32,6 +32,13 @@ def step_comment_spec(context):
 @then('a comment should be posted acknowledging that specs accompany the code')
 def step_comment_specs_with_code(context):
     assert len(context.captured_comments) > 0, "No comment was posted."
+
+
+@then('the comment should explain that specs must be submitted separately')
+def step_comment_separate_specs(context):
+    comments = " ".join(context.captured_comments)
+    assert "separate" in comments.lower() or "Implements #" in comments, \
+        f"Comment does not explain separate spec submission. Comments: {context.captured_comments}"
 
 
 @then('the comment should list accepted extensions "{extensions}"')

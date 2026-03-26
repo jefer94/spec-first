@@ -86,13 +86,10 @@ def run_gate(pr: PullRequest, repo: Repository, cfg: Config) -> None:
         return
 
     if classification.is_code_with_specs:
-        msg = (
-            "## Spec Guard: Code + Specs Received\n\n"
-            "This PR includes both code and specification files. "
-            "The AI reviewer will validate compliance once the `ai-review` label is applied."
-        )
+        msg = cfg.get_msg_mixed_pr()
         pr.create_issue_comment(redact(msg, cfg.api_key))
-        print("[gate] Code + specs PR — allowed.")
+        pr.edit(state="closed")
+        print(f"[gate] Mixed code+specs PR by '{author}' — closed. Specs must be submitted separately.")
         return
 
     if classification.is_code_only:

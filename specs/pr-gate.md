@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Classify PR content to enforce SDD. Code PRs MUST include spec files alongside the code. Spec-only PRs are always allowed. Code-only PRs (no specs) are rejected. Users with `bypass_roles` may skip enforcement entirely.
+Classify PR content to enforce strict SDD (test-first). Specs MUST be submitted and approved in a **separate PR** before any code PR is allowed. Spec-only PRs are always allowed. Code-only PRs and mixed code+specs PRs are rejected. Users with `bypass_roles` may skip enforcement entirely.
 
 ---
 
@@ -17,12 +17,14 @@ The system MUST classify every PR's changed files into three categories: spec fi
 - THEN the PR MUST be allowed to proceed
 - AND the action SHOULD add a comment acknowledging spec submission
 
-### Scenario: PR contains code AND spec files together
+### Scenario: PR contains code AND spec files together (rejected)
 
 - GIVEN a PR where changed files include BOTH code files AND spec files
+- AND the PR author's repository role is NOT in `bypass_roles`
 - WHEN the action runs on `pull_request.opened` or `pull_request.synchronize`
-- THEN the PR MUST be allowed to proceed
-- AND the action SHOULD add a comment acknowledging that specs accompany the code
+- THEN the action MUST close the PR
+- AND leave a comment using the `msg_mixed_pr` template
+- AND the comment MUST explain that specs must be submitted and approved in a separate PR first
 
 ### Scenario: PR contains only code files (no specs)
 
