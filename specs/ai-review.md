@@ -19,6 +19,23 @@ When a PR has the `accepted_tag` AND the `ai_review_tag` is added, the system MU
 - AND fetch the code diff from the current PR
 - AND invoke the LangChain agent with the diff as primary input
 
+### Scenario: AI review auto-triggered when review_on_pr is true
+
+- GIVEN `review_on_pr` is set to `true`
+- AND a PR references an accepted spec PR (e.g., `Implements #42`)
+- AND the PR contains only code files (not a spec PR)
+- WHEN the PR is opened or synchronized
+- THEN the action MUST automatically invoke the AI review
+- AND skip the manual `ai_review_tag` requirement
+
+### Scenario: review_on_pr is false (default)
+
+- GIVEN `review_on_pr` is set to `false` (default)
+- AND a PR contains code changes referencing accepted specs
+- WHEN the PR is opened or synchronized
+- THEN the action MUST NOT auto-trigger AI review
+- AND wait for the `ai_review_tag` to be manually added
+
 ---
 
 ## Requirement: LangChain tools for contextual review

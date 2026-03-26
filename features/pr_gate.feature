@@ -7,6 +7,25 @@ Feature: PR Gate — Content Classification
     Given the action is configured with default settings
     And "spec_extensions" is ".md,.feature"
     And "doc_extensions" is ".txt,.rst,.adoc"
+    And "accepted_tag" is "specs-accepted"
+    And "ai_review_tag" is "ai-review"
+    And "senior_tag" is "senior-review"
+
+  Scenario: Labels are auto-created if missing
+    Given the repository does not have label "specs-accepted"
+    And the repository does not have label "ai-review"
+    And the repository does not have label "senior-review"
+    When the action initializes
+    Then the label "specs-accepted" should be created
+    And the label "ai-review" should be created
+    And the label "senior-review" should be created
+
+  Scenario: Labels already exist are not recreated
+    Given the repository has label "specs-accepted"
+    And the repository has label "ai-review"
+    And the repository has label "senior-review"
+    When the action initializes
+    Then no labels should be created
 
   Scenario: PR contains only spec files
     Given a PR is opened with changed files:
@@ -75,3 +94,36 @@ Feature: PR Gate — Content Classification
     Then the PR should be closed
     And the conversation should be locked
     And a comment should be posted using the "msg_mixed_pr" template
+
+  # --- review_on_pr auto-trigger ---
+
+  Scenario: Code PR auto-triggers AI review when review_on_pr is true
+    Given "review_on_pr" is "true"
+    And a PR is opened with changed files:
+      | file              |
+      | src/auth.py       |
+      | src/utils.py      |
+    And the PR body contains "Implements #42"
+    And PR #42 has the label "specs-accepted"
+    When the action runs on "pull_request.opened"
+    Then the AI review should be automatically triggered
+    And the "ai_review_tag" label should not be required
+
+  Scenario: Code PR does not auto-trigger when review_on_pr is false
+    Given "review_on_pr" is "false"
+    And a PR is opened with changed files:
+      | file              |
+      | src/auth.py       |
+    And the PR body contains "Implements #42"
+    When the action runs on "pull_request.opened"
+    Then the AI review should not be triggered
+
+  Scenario: Code PR without spec reference does not auto-trigger
+    Given "review_on_pr" is "true"
+    And a PR is opened with changed files:
+      | file              |
+      | src/auth.py       |
+    And the PR body does not reference any spec PR
+    When the action runs on "pull_request.opened"
+    Then the PR should be closed
+    And a comment should be posted using the "msg_no_specs" template

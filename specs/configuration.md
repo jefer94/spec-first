@@ -21,6 +21,7 @@ The action MUST accept the following inputs via `action.yml`:
 | `senior_tag` | no | `senior-review` | Label added when AI approves and assigns a senior |
 | `authorized_roles` | no | `maintain,admin` | Comma-separated GitHub roles allowed to apply accepted tag |
 | `senior_members` | no | — | Comma-separated GitHub usernames eligible for senior assignment. If empty, assign randomly from repo collaborators with write+ access |
+| `review_on_pr` | no | `false` | When `true`, automatically trigger AI review on code PRs that reference accepted specs (no manual `ai_review_tag` needed) |
 | `msg_no_specs` | no | (built-in) | Rejection message when PR has no spec files |
 | `msg_mixed_pr` | no | (built-in) | Rejection message when PR mixes specs and code |
 | `msg_unauthorized_tag` | no | (built-in) | Rejection message when unauthorized user applies accepted tag |
