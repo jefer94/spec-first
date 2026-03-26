@@ -1,0 +1,87 @@
+name: 'Spec Guard'
+description: 'Enforces Spec-Driven Development on pull requests using AI-powered review'
+author: 'jefer94'
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  model:
+    description: 'OpenRouter model identifier'
+    required: true
+  spec_extensions:
+    description: 'Comma-separated file extensions treated as spec files'
+    required: false
+    default: '.md,.feature'
+  doc_extensions:
+    description: 'Comma-separated file extensions treated as documentation'
+    required: false
+    default: '.txt,.rst,.adoc'
+  accepted_tag:
+    description: 'Label indicating specs were reviewed and accepted'
+    required: false
+    default: 'specs-accepted'
+  ai_review_tag:
+    description: 'Label that triggers AI diff-vs-spec analysis'
+    required: false
+    default: 'ai-review'
+  senior_tag:
+    description: 'Label added when AI approves and assigns a senior reviewer'
+    required: false
+    default: 'senior-review'
+  authorized_roles:
+    description: 'Comma-separated GitHub roles allowed to apply the accepted tag'
+    required: false
+    default: 'maintain,admin'
+  bypass_roles:
+    description: 'Comma-separated GitHub roles that can bypass SDD enforcement entirely'
+    required: false
+    default: 'maintain,admin'
+  senior_members:
+    description: 'Comma-separated GitHub usernames eligible for senior assignment. If empty, assigned randomly from collaborators with write+ access'
+    required: false
+    default: ''
+  review_on_pr:
+    description: 'When true, automatically trigger AI review on code PRs that reference accepted specs'
+    required: false
+    default: 'false'
+  msg_no_specs:
+    description: 'Rejection message when PR has no spec files'
+    required: false
+    default: ''
+  msg_mixed_pr:
+    description: 'Rejection message when PR mixes specs and code without specs'
+    required: false
+    default: ''
+  msg_unauthorized_tag:
+    description: 'Rejection message when unauthorized user applies accepted tag'
+    required: false
+    default: ''
+  msg_no_specs_on_tag:
+    description: 'Rejection message when accepted tag is applied to a code-only PR'
+    required: false
+    default: ''
+  msg_ai_failure:
+    description: 'Message when AI review fails due to token or API limits'
+    required: false
+    default: ''
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  env:
+    INPUT_MODEL: ${{ inputs.model }}
+    INPUT_SPEC_EXTENSIONS: ${{ inputs.spec_extensions }}
+    INPUT_DOC_EXTENSIONS: ${{ inputs.doc_extensions }}
+    INPUT_ACCEPTED_TAG: ${{ inputs.accepted_tag }}
+    INPUT_AI_REVIEW_TAG: ${{ inputs.ai_review_tag }}
+    INPUT_SENIOR_TAG: ${{ inputs.senior_tag }}
+    INPUT_AUTHORIZED_ROLES: ${{ inputs.authorized_roles }}
+    INPUT_BYPASS_ROLES: ${{ inputs.bypass_roles }}
+    INPUT_SENIOR_MEMBERS: ${{ inputs.senior_members }}
+    INPUT_REVIEW_ON_PR: ${{ inputs.review_on_pr }}
+    INPUT_MSG_NO_SPECS: ${{ inputs.msg_no_specs }}
+    INPUT_MSG_MIXED_PR: ${{ inputs.msg_mixed_pr }}
+    INPUT_MSG_UNAUTHORIZED_TAG: ${{ inputs.msg_unauthorized_tag }}
+    INPUT_MSG_NO_SPECS_ON_TAG: ${{ inputs.msg_no_specs_on_tag }}
+    INPUT_MSG_AI_FAILURE: ${{ inputs.msg_ai_failure }}

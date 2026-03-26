@@ -1,0 +1,5 @@
+PyGithub==2.5.0
+pydantic==2.10.6
+langchain==0.3.25
+langchain-openai==0.3.16
+behave==1.2.6
