@@ -38,13 +38,19 @@ Spec Guard ensures that every code change starts with a specification. It uses a
 ```yaml
 # .github/workflows/spec-guard.yml
 name: Spec Guard
+
 on:
   pull_request:
-    types: [opened, synchronize, labeled]
+    types: [opened, synchronize, reopened, labeled]
 
 jobs:
   spec-guard:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
     steps:
       - uses: jefer94/spec-first@v1
         with:
