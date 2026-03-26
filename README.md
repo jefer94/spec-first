@@ -3,7 +3,7 @@
 > A GitHub Action that enforces Spec-Driven Development (SDD) on pull requests.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Security](https://github.com/YOUR_ORG/spec-first/actions/workflows/security.yml/badge.svg)](https://github.com/YOUR_ORG/spec-first/actions/workflows/security.yml)
+[![Security](https://github.com/jefer94/spec-first/actions/workflows/security.yml/badge.svg)](https://github.com/jefer94/spec-first/actions/workflows/security.yml)
 
 ## What It Does
 
