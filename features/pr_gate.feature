@@ -61,8 +61,9 @@ Feature: PR Gate — Content Classification
     When the action runs on "pull_request.opened"
     Then the PR should remain open
 
-  Scenario: PR contains code AND spec files together — rejected
+  Scenario: PR contains code AND spec files without specs-accepted — rejected
     Given a PR is opened by user "contributor" with "write" permission
+    And a PR does not have the label "specs-accepted"
     And the PR has changed files:
       | file                    |
       | specs/auth.md           |
@@ -72,6 +73,17 @@ Feature: PR Gate — Content Classification
     Then the PR should be closed
     And a comment should be posted using the "msg_mixed_pr" template
     And the comment should explain that specs must be submitted separately
+
+  Scenario: PR contains code AND spec files with specs-accepted — allowed
+    Given a PR is opened by user "contributor" with "write" permission
+    And a PR has the label "specs-accepted"
+    And the PR has changed files:
+      | file                    |
+      | specs/auth.md           |
+      | src/auth.py             |
+      | specs/payments.feature  |
+    When the action runs on "pull_request.opened"
+    Then the PR should remain open
 
   Scenario: PR contains only code files — no specs — by contributor
     Given a PR is opened by user "junior-dev" with "write" permission
@@ -96,8 +108,9 @@ Feature: PR Gate — Content Classification
     And the conversation should be locked
     And a comment should be posted using the "msg_no_specs" template
 
-  Scenario: Synchronized PR adds code with specs — rejected
+  Scenario: Synchronized PR adds code with specs without specs-accepted — rejected
     Given an existing open PR by user "contributor" with "write" permission
+    And a PR does not have the label "specs-accepted"
     And new commits are pushed with changed files:
       | file              |
       | src/auth.py       |
@@ -105,6 +118,16 @@ Feature: PR Gate — Content Classification
     When the action runs on "pull_request.synchronize"
     Then the PR should be closed
     And a comment should be posted using the "msg_mixed_pr" template
+
+  Scenario: Synchronized PR adds code with specs with specs-accepted — allowed
+    Given an existing open PR by user "contributor" with "write" permission
+    And a PR has the label "specs-accepted"
+    And new commits are pushed with changed files:
+      | file              |
+      | src/auth.py       |
+      | specs/auth.md     |
+    When the action runs on "pull_request.synchronize"
+    Then the PR should remain open
 
   # --- Bypass SDD Enforcement ---
 

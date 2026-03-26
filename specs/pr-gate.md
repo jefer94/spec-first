@@ -17,14 +17,22 @@ The system MUST classify every PR's changed files into three categories: spec fi
 - THEN the PR MUST be allowed to proceed
 - AND the action SHOULD add a comment acknowledging spec submission
 
-### Scenario: PR contains code AND spec files together (rejected)
+### Scenario: PR contains code AND spec files without specs-accepted label (rejected)
 
 - GIVEN a PR where changed files include BOTH code files AND spec files
+- AND the PR does NOT have the `specs-accepted` label
 - AND the PR author's repository role is NOT in `bypass_roles`
 - WHEN the action runs on `pull_request.opened` or `pull_request.synchronize`
 - THEN the action MUST close the PR
 - AND leave a comment using the `msg_mixed_pr` template
-- AND the comment MUST explain that specs must be submitted and approved in a separate PR first
+- AND the comment MUST explain that specs must be approved before code is allowed
+
+### Scenario: PR contains code AND spec files with specs-accepted label (allowed)
+
+- GIVEN a PR where changed files include BOTH code files AND spec files
+- AND the PR has the `specs-accepted` label
+- WHEN the action runs on `pull_request.opened` or `pull_request.synchronize`
+- THEN the PR MUST be allowed to proceed
 
 ### Scenario: PR contains only code files (no specs)
 

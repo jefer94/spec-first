@@ -86,10 +86,14 @@ def run_gate(pr: PullRequest, repo: Repository, cfg: Config) -> None:
         return
 
     if classification.is_code_with_specs:
+        pr_labels = {l.name for l in pr.get_labels()}
+        if cfg.accepted_tag in pr_labels:
+            print(f"[gate] Mixed code+specs PR by '{author}' — specs-accepted present, allowed.")
+            return
         msg = cfg.get_msg_mixed_pr()
         pr.create_issue_comment(redact(msg, cfg.api_key))
         pr.edit(state="closed")
-        print(f"[gate] Mixed code+specs PR by '{author}' — closed. Specs must be submitted separately.")
+        print(f"[gate] Mixed code+specs PR by '{author}' — no specs-accepted label, closed.")
         return
 
     if classification.is_code_only:
